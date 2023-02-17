@@ -28,3 +28,5 @@ p_text = p_title.get_text() + p_paragraphs.get_text()
 
 # Print the text content
 print(p_text)
+
+##TODO: Add more beautifying measures. And also add an automatic list from the news. And add the most common tags to be read.
