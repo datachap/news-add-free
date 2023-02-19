@@ -33,4 +33,3 @@ elif p_h1 is not p_title and p_h1 is not None and p_title is not None:
 # Print the text content
 print(p_text)
 
-##TODO: Add more beautifying measures. And also add an automatic list from the news. And add the most common tags to be read.
