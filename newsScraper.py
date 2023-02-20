@@ -1,35 +1,39 @@
 from bs4 import BeautifulSoup
 import time
 import requests
-from news_fetcher import getNewsHeadlinesUrl
+from newsFetcher import getNewsHeadlinesUrl
 
-# URL of the website to extract text from
-url = getNewsHeadlinesUrl()
+def getNewsInfo(urls):
 
-# Set the user agent
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
+    # Set the user agent
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
+    contentDictionary = {}
+    # Send a GET request to the URL with a delay of 1 second between requests
+    for url in urls:
+        response = requests.get(url, headers=headers)
 
-# Send a GET request to the URL with a delay of 1 second between requests
-while True:
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        break
-    time.sleep(1)
+    # Use BeautifulSoup to parse the HTML content of the response
+        soup = BeautifulSoup(response.content, 'html.parser')
 
-# Use BeautifulSoup to parse the HTML content of the response
-soup = BeautifulSoup(response.content, 'html.parser')
+        # Find the tags, which are the most relevant, in the HTML content
+        p_paragraphs = []
+        for p in soup.find_all('p'):
+            p_paragraphs.append(p.text)
+        if soup.h1 is not None:
+            contentDictionary[soup.h1.text] = p_paragraphs
+        if soup.title is not None:
+            contentDictionary[soup.title.text] = p_paragraphs
+    return contentDictionary
 
-# Find the tags, which are the most relevant, in the HTML content
-p_h1 = soup.find("h1")
-p_title = soup.find("title")
-p_paragraphs = soup.find('p')
+# This shall be used in the main file
+# TODO get the title straight from the json file without needing to do it again.
+urls = getNewsHeadlinesUrl()
+print (getNewsInfo(urls))
 
-# Get all the text content from the <p> tag
-if p_h1 is p_title:
-    p_text = p_title.get_text() + p_paragraphs.get_text()
-elif p_h1 is not p_title and p_h1 is not None and p_title is not None:
-    p_text = p_h1.get_text() + p_title.get_text() + p_paragraphs.get_text()
 
-# Print the text content
-print(p_text)
+print ("Test")
+
+
+
+
 
