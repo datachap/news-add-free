@@ -1,19 +1,17 @@
+
 # Using the News API to fetch news headlines
 import requests
 
 # Defining the method to deliver the headlines
-#TODO
-# Change the method to put the api key as a parameter
 def getNewsHeadlinesUrl():
     # The API key is your own.
     api_key = "67848e91644e4e8d9dce4e8bba97f66d"
     url = "https://newsapi.org/v2/top-headlines"
     params = {
         "apiKey": api_key,
-        "country": "us",
-        "category": "general",
+        "category": "business",
         "language": "en",
-        "pageSize": 70
+        "pageSize": 20
     }
 
     # make the API request
