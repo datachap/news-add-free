@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-import json
+import re
 import requests
 from newsFetcher import getNewsHeadlinesUrl
 
@@ -17,24 +17,17 @@ def getNewsInfo(urls):
         soup = BeautifulSoup(response.content, 'html.parser')
 
         # Find the tags, which are the most relevant, in the HTML content
-        p_paragraphs = []
+        p_paragraphs = ""
         for p in soup.find_all('p'):
-            p_paragraphs.append(p.text)
+            p_paragraphs = p_paragraphs + " " + (p.text)
         if soup.h1 is not None:
-            contentDictionary[soup.h1.text] = p_paragraphs
+            h1_text = re.sub(r'[^\S ]+', '', soup.h1.text)
+            contentDictionary[h1_text] = p_paragraphs
         elif soup.title is not None:
-            contentDictionary[soup.title.text] = p_paragraphs
+            title_text = re.sub(r'[^\S ]+', '', soup.title.text)
+            contentDictionary[title_text] = p_paragraphs
             
-    with open('data.json', 'w', encoding='utf-8') as f:
-        json.dump(contentDictionary, f, ensure_ascii=False, indent=4)
-
-# This shall be used in the main file
-# TODO get the title straight from the json file without needing to do it again.
-urls = getNewsHeadlinesUrl()
-getNewsInfo(urls)
-
-
-print ("Test")
+    return contentDictionary
 
 
 

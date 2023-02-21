@@ -2,6 +2,8 @@
 import requests
 
 # Defining the method to deliver the headlines
+#TODO
+# Change the method to put the api key as a parameter
 def getNewsHeadlinesUrl():
     # The API key is your own.
     api_key = "67848e91644e4e8d9dce4e8bba97f66d"
@@ -9,8 +11,9 @@ def getNewsHeadlinesUrl():
     params = {
         "apiKey": api_key,
         "country": "us",
+        "category": "general",
         "language": "en",
-        "pageSize": 50
+        "pageSize": 70
     }
 
     # make the API request
