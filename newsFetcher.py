@@ -1,4 +1,3 @@
-
 # Using the News API to fetch news headlines
 import requests
 

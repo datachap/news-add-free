@@ -1,4 +1,3 @@
-import sys
 from newsFetcher import getNewsHeadlinesUrl
 from newsScraper import getNewsInfo
 from newsSummarizer import textSummarizer

@@ -1,8 +1,5 @@
 from transformers import PegasusForConditionalGeneration, PegasusTokenizer
-import os
 import json
-from newsFetcher import getNewsHeadlinesUrl
-from newsScraper import getNewsInfo
 
 def textSummarizerWorker(maxLengthSingleOrNot, summarizedNewsList, text2Summarize, model, tokenizer, title):
     inputs = tokenizer(text2Summarize, padding='max_length', truncation=True, max_length=maxLengthSingleOrNot, return_tensors="pt")
