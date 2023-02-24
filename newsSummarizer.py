@@ -1,58 +1,57 @@
-from transformers import AutoModelForSeq2SeqLM, BartTokenizer
+from transformers import PegasusForConditionalGeneration, PegasusTokenizer
 import os
 import json
 from newsFetcher import getNewsHeadlinesUrl
 from newsScraper import getNewsInfo
 
-def textSummarizer(scrapedNews, singleOrNotSummary):
+def textSummarizerWorker(maxLengthSingleOrNot, summarizedNewsList, text2Summarize, model, tokenizer, title):
+    inputs = tokenizer(text2Summarize, padding='max_length', truncation=True, max_length=maxLengthSingleOrNot, return_tensors="pt")
+    input_ids = inputs['input_ids']
+    attention_mask = inputs['attention_mask']
+    n_segments = input_ids.shape[-1] // maxLengthSingleOrNot
     
-    # Check if this the summary of the single links or not
-    if singleOrNotSummary:
-        maxLengthSingleOrNot = 250
-        if os.path.exists("data.json"):
-            os.remove("data.json")
-    else:
-        maxLengthSingleOrNot= 1000
-        if os.path.exists("data1.json"):
-            os.remove("data1.json")
-            
-    summarizedNewsList = {}
-    toBeFinallySummarized = {}
-    totalSummary = ""
-# Load the BART model and tokenizer
-    model = AutoModelForSeq2SeqLM.from_pretrained("facebook/bart-large-cnn")
-    tokenizer = BartTokenizer.from_pretrained("facebook/bart-large-cnn")
-
-    for title, text2Summarize in scrapedNews.items():
-
-        inputs = tokenizer(text2Summarize, padding='max_length', truncation=True, max_length=maxLengthSingleOrNot, return_tensors="pt")
-        input_ids = inputs['input_ids']
-        attention_mask = inputs['attention_mask']
-        n_segments = input_ids.shape[-1] // maxLengthSingleOrNot
-
-        # summarize each segment and concatenate the results
-        summary = ""
-        for i in range(n_segments+1):
+    summary = ""
+    for i in range(n_segments+1):
             start = i * maxLengthSingleOrNot
             end = (i+1) * maxLengthSingleOrNot
             input_ids_segment = input_ids[:, start:end]
             attention_mask_segment = attention_mask[:, start:end]
             if input_ids_segment.numel() == 0 or attention_mask_segment.numel() == 0:
                 continue  # skip empty segments
-            outputs = model.generate(input_ids_segment, attention_mask=attention_mask_segment, max_length=maxLengthSingleOrNot, early_stopping=False)
+            outputs = model.generate(input_ids_segment, max_length=maxLengthSingleOrNot, early_stopping=True)
             summary_segment = tokenizer.decode(outputs[0], skip_special_tokens=True)
             summary += summary_segment
             
-        totalSummary += summary
-        summarizedNewsList[title] = summary
-    toBeFinallySummarized["Final"] = totalSummary
-        
-        
-    if singleOrNotSummary:  
-        with open('data.json', 'w', encoding='utf-8') as f:
-            json.dump(summarizedNewsList, f, ensure_ascii=False, indent=4)
-        return toBeFinallySummarized
+    summarizedNewsList[title] = summary
+    
+
+def textSummarizer(scrapedNews, singleOrNotSummary):
+    
+    # The document where it will be printed, the newsList after summarized and the total summary put together
+    file2Print = ""
+    summarizedNewsList = {}
+    totalSummary = ""
+    
+    # Check if this the summary of the single links or not
+    if singleOrNotSummary:
+        maxLengthSingleOrNot = 250
+        file2Print = "data.json"
     else:
-        with open('data1.json', 'w', encoding='utf-8') as f:
-            json.dump(toBeFinallySummarized, f, ensure_ascii=False, indent=4)
+        maxLengthSingleOrNot= 1000
+        file2Print = "data1.json"
+    
+    # Load the Pegasus model and tokenizer
+    model = PegasusForConditionalGeneration.from_pretrained('google/pegasus-large')
+    tokenizer = PegasusTokenizer.from_pretrained('google/pegasus-large')
+
+    if isinstance(scrapedNews, dict):
+        for title, text2Summarize in scrapedNews.items():
+            totalSummary += text2Summarize
+            textSummarizerWorker(maxLengthSingleOrNot, summarizedNewsList, text2Summarize, model, tokenizer, title)
+    elif isinstance(scrapedNews,str):
+        textSummarizerWorker(maxLengthSingleOrNot, summarizedNewsList, scrapedNews, model, tokenizer, "Final")
         
+    with open(file2Print, 'w', encoding='utf-8') as f:
+        json.dump(summarizedNewsList, f, ensure_ascii=False, indent=4)
+    return totalSummary
+            

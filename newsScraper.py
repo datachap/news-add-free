@@ -10,7 +10,7 @@ def getNewsInfo(urls):
     contentDictionary = {}
     
     # Send a GET request to the URL with a delay of 1 second between requests
-    for url in urls:
+    for title, url in urls.items():
         response = requests.get(url, headers=headers)
 
         # Use BeautifulSoup to parse the HTML content of the response
@@ -20,12 +20,8 @@ def getNewsInfo(urls):
         p_paragraphs = ""
         for p in soup.find_all('p'):
             p_paragraphs = p_paragraphs + " " + (p.text)
-        if soup.h1 is not None:
-            h1_text = re.sub(r'[^\S ]+', ' ', soup.h1.text)
-            contentDictionary[h1_text] = p_paragraphs
-        elif soup.title is not None:
-            title_text = re.sub(r'[^\S ]+', ' ', soup.title.text)
-            contentDictionary[title_text] = p_paragraphs
+        
+        contentDictionary[title] = re.sub(r'[^\S ]+', ' ', p_paragraphs)
             
     return contentDictionary
 

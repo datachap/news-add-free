@@ -9,7 +9,8 @@ def getNewsHeadlinesUrl():
     url = "https://newsapi.org/v2/top-headlines"
     params = {
         "apiKey": api_key,
-        "category": "business",
+        "category": "general",
+        "country": "us",
         "language": "en",
         "pageSize": 20
     }
@@ -18,10 +19,10 @@ def getNewsHeadlinesUrl():
     response = requests.get(url, params=params)
 
     # parse the JSON response
-    urlList = []
+    urlList = {}
     data = response.json()
 
-    # extract the article titles
+    # extract the article titles and urls
     for article in data["articles"]:
-        urlList.append(article["url"])
+        urlList[article["title"]] = article["url"]
     return urlList
