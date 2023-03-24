@@ -7,7 +7,6 @@ def main():
     urls = getNewsInfo(getNewsHeadlinesUrl())
     print ("Number of articles to be scraped: " + (str)(len(urls)))
     finalText = textSummarizer(urls, True)
-    textSummarizer(finalText, False)
     
 if __name__ == "__main__":
     main()

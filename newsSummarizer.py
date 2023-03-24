@@ -1,25 +1,30 @@
 from transformers import PegasusForConditionalGeneration, PegasusTokenizer
 import json
 
-def textSummarizerWorker(maxLengthSingleOrNot, summarizedNewsList, text2Summarize, model, tokenizer, title):
-    inputs = tokenizer(text2Summarize, padding='max_length', truncation=True, max_length=maxLengthSingleOrNot, return_tensors="pt")
-    input_ids = inputs['input_ids']
-    attention_mask = inputs['attention_mask']
-    n_segments = input_ids.shape[-1] // maxLengthSingleOrNot
-    
+def textSummarizerWorker(minLength, maxLength, summarizedNewsList, text2Summarize, model, tokenizer, title):
     summary = ""
-    for i in range(n_segments+1):
-            start = i * maxLengthSingleOrNot
-            end = (i+1) * maxLengthSingleOrNot
+    while len(summary.split()) < minLength:
+        inputs = tokenizer(text2Summarize, padding='max_length', truncation=True, max_length=maxLength, return_tensors="pt")
+        input_ids = inputs['input_ids']
+        attention_mask = inputs['attention_mask']
+        n_segments = input_ids.shape[-1] // maxLength
+
+        for i in range(n_segments+1):
+            start = i * maxLength
+            end = (i+1) * maxLength
             input_ids_segment = input_ids[:, start:end]
             attention_mask_segment = attention_mask[:, start:end]
             if input_ids_segment.numel() == 0 or attention_mask_segment.numel() == 0:
                 continue  # skip empty segments
-            outputs = model.generate(input_ids_segment, max_length=maxLengthSingleOrNot, early_stopping=True)
+            outputs = model.generate(input_ids_segment, max_length=maxLength, early_stopping=True)
             summary_segment = tokenizer.decode(outputs[0], skip_special_tokens=True)
             summary += summary_segment
-            
-    summarizedNewsList[title] = summary
+
+            # Check if the summary has reached the maximum length
+            if len(summary.split()) >= maxLength:
+                break
+
+    summarizedNewsList[title] = summary[:maxLength]
     
 
 def textSummarizer(scrapedNews, singleOrNotSummary):
@@ -28,14 +33,18 @@ def textSummarizer(scrapedNews, singleOrNotSummary):
     file2Print = ""
     summarizedNewsList = {}
     totalSummary = ""
+    max_length = 0
+    minLength = 0
     
     # Check if this the summary of the single links or not
     if singleOrNotSummary:
-        maxLengthSingleOrNot = 250
         file2Print = "data.json"
+        max_length = 400
+        minLength = 250
     else:
-        maxLengthSingleOrNot= 1000
         file2Print = "data1.json"
+        max_length = 300
+        minLength = 200
     
     # Load the Pegasus model and tokenizer
     model = PegasusForConditionalGeneration.from_pretrained('google/pegasus-large')
@@ -43,10 +52,11 @@ def textSummarizer(scrapedNews, singleOrNotSummary):
 
     if isinstance(scrapedNews, dict):
         for title, text2Summarize in scrapedNews.items():
+            print (title)
             totalSummary += text2Summarize
-            textSummarizerWorker(maxLengthSingleOrNot, summarizedNewsList, text2Summarize, model, tokenizer, title)
+            textSummarizerWorker(minLength,max_length, summarizedNewsList, text2Summarize, model, tokenizer, title)
     elif isinstance(scrapedNews,str):
-        textSummarizerWorker(maxLengthSingleOrNot, summarizedNewsList, scrapedNews, model, tokenizer, "Final")
+        textSummarizerWorker(minLength,max_length, summarizedNewsList, scrapedNews, model, tokenizer, "Final")
         
     with open(file2Print, 'w', encoding='utf-8') as f:
         json.dump(summarizedNewsList, f, ensure_ascii=False, indent=4)
