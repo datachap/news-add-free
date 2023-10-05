@@ -11,7 +11,6 @@ model = PegasusForConditionalGeneration.from_pretrained(model_name)
 # Function to summarize the content
 def summarize_text(text, max_length=50):
     # Split the input text into chunks of manageable size
-    print ("New text in")
     max_chunk_length = 512  # You can adjust this value as needed
     text_chunks = [text[i:i + max_chunk_length] for i in range(0, len(text), max_chunk_length)]
     
