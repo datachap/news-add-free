@@ -1,0 +1,24 @@
+name: Update News HTML
+
+on:
+  schedule:
+    - cron: "30 6 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.1
+
+    - name: Install Dependencies
+      run: pip install -r requirements.txt  # If you have any dependencies
+
+    - name: Run Python Script
+      run: python main.py
