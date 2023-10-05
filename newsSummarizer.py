@@ -1,64 +1,65 @@
+from bs4 import BeautifulSoup
+import re
+import requests
 from transformers import PegasusForConditionalGeneration, PegasusTokenizer
-import json
 
-def textSummarizerWorker(minLength, maxLength, summarizedNewsList, text2Summarize, model, tokenizer, title):
-    summary = ""
-    while len(summary.split()) < minLength:
-        inputs = tokenizer(text2Summarize, padding='max_length', truncation=True, max_length=maxLength, return_tensors="pt")
-        input_ids = inputs['input_ids']
-        attention_mask = inputs['attention_mask']
-        n_segments = input_ids.shape[-1] // maxLength
+# Define the Pegasus model and tokenizer
+model_name = "google/pegasus-xsum"
+tokenizer = PegasusTokenizer.from_pretrained(model_name)
+model = PegasusForConditionalGeneration.from_pretrained(model_name)
 
-        for i in range(n_segments+1):
-            start = i * maxLength
-            end = (i+1) * maxLength
-            input_ids_segment = input_ids[:, start:end]
-            attention_mask_segment = attention_mask[:, start:end]
-            if input_ids_segment.numel() == 0 or attention_mask_segment.numel() == 0:
-                continue  # skip empty segments
-            outputs = model.generate(input_ids_segment, max_length=maxLength, early_stopping=True)
-            summary_segment = tokenizer.decode(outputs[0], skip_special_tokens=True)
-            summary += summary_segment
-
-            # Check if the summary has reached the maximum length
-            if len(summary.split()) >= maxLength:
-                break
-
-    summarizedNewsList[title] = summary[:maxLength]
+# Function to summarize the content
+def summarize_text(text, max_length=50):
+    # Split the input text into chunks of manageable size
+    print ("New text in")
+    max_chunk_length = 512  # You can adjust this value as needed
+    text_chunks = [text[i:i + max_chunk_length] for i in range(0, len(text), max_chunk_length)]
     
+    summaries = []
 
-def textSummarizer(scrapedNews, singleOrNotSummary):
-    
-    # The document where it will be printed, the newsList after summarized and the total summary put together
-    file2Print = ""
-    summarizedNewsList = {}
-    totalSummary = ""
-    max_length = 0
-    minLength = 0
-    
-    # Check if this the summary of the single links or not
-    if singleOrNotSummary:
-        file2Print = "data.json"
-        max_length = 400
-        minLength = 250
-    else:
-        file2Print = "data1.json"
-        max_length = 300
-        minLength = 200
-    
-    # Load the Pegasus model and tokenizer
-    model = PegasusForConditionalGeneration.from_pretrained('google/pegasus-large')
-    tokenizer = PegasusTokenizer.from_pretrained('google/pegasus-large')
+    for chunk in text_chunks:
+        inputs = tokenizer.encode("summarize: " + chunk, return_tensors="pt", max_length=1024, truncation=True)
+        summary_ids = model.generate(inputs, max_length=max_length, min_length=50, length_penalty=2.0, num_beams=4, early_stopping=True)
+        summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+        summaries.append(summary)
 
-    if isinstance(scrapedNews, dict):
-        for title, text2Summarize in scrapedNews.items():
-            print (title)
-            totalSummary += text2Summarize
-            textSummarizerWorker(minLength,max_length, summarizedNewsList, text2Summarize, model, tokenizer, title)
-    elif isinstance(scrapedNews,str):
-        textSummarizerWorker(minLength,max_length, summarizedNewsList, scrapedNews, model, tokenizer, "Final")
+    return " ".join(summaries)
+
+# Function to generate HTML content
+def generate_html(articles):
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>News Articles</title>
         
-    with open(file2Print, 'w', encoding='utf-8') as f:
-        json.dump(summarizedNewsList, f, ensure_ascii=False, indent=4)
-    return totalSummary
-            
+    </head>
+    <body>
+    <h1> News everybody </h1>
+    """
+    
+    for article in articles:
+        title = article["Title"]
+        url = article["Url"]
+        content = article["Content"]
+        if title != "" and url != "" and content != "":
+            summarized_content = summarize_text(content)
+
+            article_html = f"""
+            <h2><a href="{url}">{title}</a></h2>
+            <p class="element">Summary </p>
+            <p>{summarized_content}</p>
+            <p class="element">Article </p>
+            <p>{content}</p>
+            <hr>
+            """
+            html_content += article_html
+
+        html_content += """
+        </body>
+        </html>
+        """
+    
+    return html_content
+
+
