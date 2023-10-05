@@ -11,7 +11,7 @@ def main():
     html_content = generate_html(getNewsInfo(headlines))
 
     # Save the HTML content to a file
-    with open("news.html", "w", encoding="utf-8") as html_file:
+    with open("index.html", "w", encoding="utf-8") as html_file:
         html_file.write(html_content)
 
 
