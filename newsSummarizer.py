@@ -22,6 +22,7 @@ def generate_html(articles):
     <!DOCTYPE html>
     <html>
     <head>
+    <meta charset="UTF-8">
         <title>News Articles</title>
                <style>
         body {
