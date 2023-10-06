@@ -15,14 +15,10 @@ def get_news_headlines():
     # Fetch business headlines
     biz_headlines = fetch_headlines(base_url + "top-headlines", params, category="business")
 
-    # Fetch special headlines
-    special_headlines = fetch_special_headlines(base_url + "everything", params)
-
     # Combine all the headlines into one dictionary
     all_headlines = {
         **tech_headlines,
-        **biz_headlines,
-        **special_headlines
+        **biz_headlines
     }
 
     return all_headlines
@@ -41,24 +37,7 @@ def fetch_headlines(url, params, category):
     if "articles" not in data:
         print(f"Error: 'articles' key not found in {category} headlines response.")
         return {}
-
-    return extract_titles_and_urls(data)
-
-
-def fetch_special_headlines(url, params):
-    params["sources"] = "the-verge,business-insider,fortune"
-    response = requests.get(url, params=params)
-
-    if response.status_code != 200:
-        print("Error: Failed to fetch special headlines. Status code: {response.status_code}")
-        return {}
-
-    data = response.json()
-
-    if "articles" not in data:
-        print("Error: 'articles' key not found in special headlines response.")
-        return {}
-
+    
     return extract_titles_and_urls(data)
 
 

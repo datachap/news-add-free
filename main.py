@@ -7,6 +7,7 @@ from newsSummarizer import generate_html
 def main():
     # Get the news list from the scraper
     headlines = get_news_headlines()
+    print("Total number of articles: " + str(len(headlines)))
     
     html_content = generate_html(getNewsInfo(headlines))
 

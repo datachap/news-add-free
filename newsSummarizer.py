@@ -34,8 +34,13 @@ def generate_html(articles):
         
     </head>
     <body>
-    <h1> News everybody </h1>
     """
+
+    # Count the total number of articles
+    total_articles = len(articles)
+    
+    # Modify the <h1> tag to include the total number of articles
+    html_content += f"<h1> News ({total_articles} articles)</h1>"
     
     for article in articles:
         title = article["Title"]
