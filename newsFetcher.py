@@ -6,14 +6,14 @@ def get_news_headlines():
         "apiKey": api_key,
         "country": "us",
         "language": "en",
-        "pageSize": 1
+        "pageSize": 20
     }
 
     # Fetch technology headlines
     tech_headlines = fetch_headlines(base_url + "top-headlines", params, category="technology")
 
     # Fetch business headlines
-    biz_headlines = fetch_special_headlines("https://newsapi.org/v2/everything?domains=theverge.com,techcrunch.com,www.businessinsider.com/,fortune.com&pageSize=1&apiKey=67848e91644e4e8d9dce4e8bba97f66d")    
+    biz_headlines = fetch_special_headlines("https://newsapi.org/v2/everything?domains=theverge.com,techcrunch.com,www.businessinsider.com/,fortune.com&pageSize=30&apiKey=67848e91644e4e8d9dce4e8bba97f66d")    
 
     # Combine all the headlines into one dictionary
     all_headlines = {
