@@ -1,31 +1,30 @@
 import requests
-api_key="67848e91644e4e8d9dce4e8bba97f66d"
+import json
+
 def get_news_headlines():
+    api_key="67848e91644e4e8d9dce4e8bba97f66d"
+    url_list = {}   
     base_url = "https://newsapi.org/v2/"
     params = {
         "apiKey": api_key,
-        "country": "us",
         "language": "en",
-        "pageSize": 20
     }
 
-    # Fetch technology headlines
-    tech_headlines = fetch_headlines(base_url + "top-headlines", params, category="technology")
+    # Fetch category headlines
+    fetch_category_headlines(base_url + "top-headlines", params, category="technology", url_list=url_list)
+    fetch_category_headlines(base_url + "top-headlines", params, category="business", url_list=url_list)
+    fetch_category_headlines(base_url + "top-headlines", params, category="general", url_list=url_list)
 
-    # Fetch business headlines
-    biz_headlines = fetch_special_headlines("https://newsapi.org/v2/everything?domains=theverge.com,techcrunch.com,www.businessinsider.com/,fortune.com&pageSize=30&apiKey=67848e91644e4e8d9dce4e8bba97f66d")    
+    # Fetch domains headlines
+    fetch_domain_headlines("https://newsapi.org/v2/everything?domains=theverge.com,techcrunch.com,www.businessinsider.com/,fortune.com&pageSize=1&apiKey=67848e91644e4e8d9dce4e8bba97f66d", url_list=url_list)
 
-    # Combine all the headlines into one dictionary
-    all_headlines = {
-        **tech_headlines,
-        **biz_headlines
-    }
-
-    return all_headlines
+    return url_list
 
 
-def fetch_headlines(url, params, category):
+def fetch_category_headlines(url, params, category, url_list):
     params["category"] = category
+    params["country"] = "us"
+    params["pageSize"] = 1
     response = requests.get(url, params=params)
 
     if response.status_code != 200:
@@ -37,31 +36,36 @@ def fetch_headlines(url, params, category):
     if "articles" not in data:
         print(f"Error: 'articles' key not found in {category} headlines response.")
         return {}
-    return extract_titles_and_urls(data)
+    return extract_titles_and_urls(data, url_list)
 
 
-def fetch_special_headlines(url):
+def fetch_domain_headlines(url,url_list):
+   
     response = requests.get(url)
 
     if response.status_code != 200:
-        print("Error: Failed to fetch special headlines. Status code: {response.status_code}")
+        print("Error: Failed to fetch headlines with domains. Status code: {response.status_code}")
         return {}
 
     data = response.json()
 
     if "articles" not in data:
-        print("Error: 'articles' key not found in special headlines response.")
+        print("Error: 'articles' key not found in headlines with domains.")
         return {}
-    return extract_titles_and_urls(data)
+    return extract_titles_and_urls(data, url_list)
 
 
-def extract_titles_and_urls(data):
-    url_list = {}
+
+def extract_titles_and_urls(data, url_list):
+
     for article in data.get("articles", []):
         title = article.get("title")
         url = article.get("url")
-        if title and url:
-            url_list[title] = url
+        name = article.get("source", {}).get("name")
+        if title and url and "youtube.com" not in url:
+            url_list[title] = {"title": title, "url": url, "source_name": name}
+    
     return url_list
+
 
 
