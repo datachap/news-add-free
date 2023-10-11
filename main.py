@@ -1,7 +1,7 @@
 import json
 from newsFetcher import get_news_headlines
 from newsScraperSummarizer import newsScraper
-from htmlGenerator import generate_html_from_json
+import htmlGenerator
 
 def main():
     # Get the news list from the scraper
@@ -12,7 +12,7 @@ def main():
     
     # Example usage: Provide the path to your data.json file
     data_json_file = 'data.json'
-    html_code = generate_html_from_json(data_json_file)
+    html_code = htmlGenerator.json2Html(data_json_file)
 
     # Write the HTML code to a file
     with open("index.html", "w", encoding='utf-8') as file:

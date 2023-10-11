@@ -1,19 +1,7 @@
 from bs4 import BeautifulSoup
-from transformers import AutoModelForSeq2SeqLM, BartTokenizer
 import re
 import requests
-import json
-
-def newsSummarizer(text):
-    model = AutoModelForSeq2SeqLM.from_pretrained("facebook/bart-large-cnn")
-    tokenizer = BartTokenizer.from_pretrained("facebook/bart-large-cnn")
-
-# Function to summarize the content
-    max_length = 350  # Increase max_length for longer summaries
-    inputs = tokenizer.encode("summarize: " + text, max_length=1024, return_tensors="pt", truncation=True)
-    summary_ids = model.generate(inputs, max_length=max_length, min_length=150, length_penalty=2.0, num_beams=4, early_stopping=True)
-    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-    return summary
+import newsSummaryTagging
 
 # Cleans up repeated articles
 def remove_duplicates(articles):
@@ -63,7 +51,7 @@ def newsScraper(urls):
                 paragraphs = paragraphs + " " + (p.text)
             
             content = re.sub(r'[^\S ]+', ' ', paragraphs).strip()
-            summary = newsSummarizer(content)
+            summary = newsSummaryTagging.newsSummarizer(content)
 
             # Create a dictionary for the article
             article_dict = {

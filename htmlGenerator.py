@@ -1,6 +1,6 @@
 import json
 
-def generate_html_from_json(json_file):
+def json2Html(json_file):
     with open(json_file, 'r') as file:
         articles = json.load(file)
     num_objects = len(articles)
@@ -20,23 +20,24 @@ def generate_html_from_json(json_file):
     </head>
     <body>
         <h1 id="title">Articles {num_objects}</h1>
+        <div class="content">
     '''
 
     for article in articles:
         html += f'''
-        
+            <div class="entire-article">
             <div class="lefty">
                 <h2><a href="{article['Url']}">{article['Title']}</a></h2>
                 <span class="link">--{article['Source']}</span>
             </div>
-            <div class="righty"
+            <div class="righty">
             <p class="summary">{article['Summary']}</p>
             <span class="element-title" onclick="toggleExpand(this)">Read</span>
-            <p class="element-article">{article['Content']}</p></div>
+            <p class="element-article">{article['Content']}</p></div></div>
         '''
 
     html += '''
-      
+      </div>
         <script>
             // JavaScript to toggle the 'expanded' class on click
             function toggleExpand(element) {

@@ -1,5 +1,4 @@
 import requests
-import json
 
 def get_news_headlines():
     api_key="67848e91644e4e8d9dce4e8bba97f66d"
@@ -16,7 +15,7 @@ def get_news_headlines():
     fetch_category_headlines(base_url + "top-headlines", params, category="general", url_list=url_list)
 
     # Fetch domains headlines
-    fetch_domain_headlines("https://newsapi.org/v2/everything?domains=theverge.com,techcrunch.com,www.businessinsider.com/,fortune.com&pageSize=1&apiKey=67848e91644e4e8d9dce4e8bba97f66d", url_list=url_list)
+    fetch_domain_headlines("https://newsapi.org/v2/everything?domains=theverge.com,techcrunch.com,www.businessinsider.com/,fortune.com&pageSize=30&apiKey=67848e91644e4e8d9dce4e8bba97f66d", url_list=url_list)
 
     return url_list
 
@@ -24,7 +23,7 @@ def get_news_headlines():
 def fetch_category_headlines(url, params, category, url_list):
     params["category"] = category
     params["country"] = "us"
-    params["pageSize"] = 1
+    params["pageSize"] = 20
     response = requests.get(url, params=params)
 
     if response.status_code != 200:
